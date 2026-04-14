@@ -1,0 +1,59 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'com.gradleup.shadow' version '9.3.1'
+}
+
+application {
+    mainClass = 'com.f9n.altibase.schemadiff.Main'
+}
+
+group = 'com.f9n'
+version = project.hasProperty('releaseVersion') ? project.property('releaseVersion') : '0.1.0-dev'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.altibase:altibase-jdbc:7.1.0.9.2'
+    implementation 'info.picocli:picocli:4.7.6'
+    implementation 'com.google.code.gson:gson:2.12.1'
+    implementation 'io.github.java-diff-utils:java-diff-utils:4.15'
+
+    implementation 'org.slf4j:slf4j-api:2.0.17'
+    implementation 'ch.qos.logback:logback-classic:1.5.9'
+
+    testImplementation platform('org.junit:junit-bom:5.11.3')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+shadowJar {
+    archiveBaseName.set('altibase-schema-diff')
+    archiveClassifier.set('')
+    archiveVersion.set('')
+    manifest {
+        attributes 'Main-Class': 'com.f9n.altibase.schemadiff.Main',
+                   'Implementation-Version': project.version
+    }
+    mergeServiceFiles()
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+}
+
+tasks.named('build') {
+    dependsOn shadowJar
+}
+
+tasks.named('jar') {
+    enabled = false
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+}
