@@ -57,4 +57,5 @@ tasks.named('jar') {
 
 tasks.named('test', Test) {
     useJUnitPlatform()
+    jvmArgs '-Dnet.bytebuddy.experimental=true'
 }
