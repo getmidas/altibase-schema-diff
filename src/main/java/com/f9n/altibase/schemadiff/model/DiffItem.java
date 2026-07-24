@@ -12,7 +12,7 @@ public record DiffItem(
         String targetText
 ) {
     public enum Category {
-        SCHEMA, TABLE, COLUMN, PROCEDURE, FUNCTION, SEQUENCE, VIEW
+        SCHEMA, TABLE, COLUMN, INDEX, CONSTRAINT, TRIGGER, PROCEDURE, FUNCTION, SEQUENCE, VIEW
     }
 
     public enum Type {
@@ -23,8 +23,16 @@ public record DiffItem(
         return new DiffItem(cat, schema, name, Type.ONLY_IN_SOURCE, List.of(), null, null);
     }
 
+    public static DiffItem onlyInSource(Category cat, String schema, String name, List<String> details) {
+        return new DiffItem(cat, schema, name, Type.ONLY_IN_SOURCE, details, null, null);
+    }
+
     public static DiffItem onlyInTarget(Category cat, String schema, String name) {
         return new DiffItem(cat, schema, name, Type.ONLY_IN_TARGET, List.of(), null, null);
+    }
+
+    public static DiffItem onlyInTarget(Category cat, String schema, String name, List<String> details) {
+        return new DiffItem(cat, schema, name, Type.ONLY_IN_TARGET, details, null, null);
     }
 
     public static DiffItem different(Category cat, String schema, String name, List<String> details) {

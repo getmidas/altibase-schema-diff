@@ -13,6 +13,9 @@ public class SchemaDiffer {
 
         diffSchemas(source, target, items);
         diffTables(source, target, items);
+        diffIndexes(source, target, items);
+        diffConstraints(source, target, items);
+        diffTriggers(source, target, items);
         diffProceduresAndFunctions(source, target, items);
         diffSequences(source, target, items);
         diffViews(source, target, items);
@@ -106,6 +109,88 @@ public class SchemaDiffer {
             changes.add("default '" + srcDef + "' → '" + tgtDef + "'");
         }
         return changes;
+    }
+
+    private void diffIndexes(SchemaSnapshot source, SchemaSnapshot target, List<DiffItem> items) {
+        Map<String, IndexInfo> srcIdx = indexBy(source.indexes(), IndexInfo::matchKey);
+        Map<String, IndexInfo> tgtIdx = indexBy(target.indexes(), IndexInfo::matchKey);
+
+        Set<String> allKeys = new TreeSet<>();
+        allKeys.addAll(srcIdx.keySet());
+        allKeys.addAll(tgtIdx.keySet());
+
+        for (String key : allKeys) {
+            IndexInfo src = srcIdx.get(key);
+            IndexInfo tgt = tgtIdx.get(key);
+            IndexInfo any = src != null ? src : tgt;
+
+            if (src == null) {
+                items.add(DiffItem.onlyInTarget(DiffItem.Category.INDEX, any.schema(), any.displayName(), List.of(any.describe())));
+            } else if (tgt == null) {
+                items.add(DiffItem.onlyInSource(DiffItem.Category.INDEX, any.schema(), any.displayName(), List.of(any.describe())));
+            } else {
+                List<String> diffs = src.differences(tgt);
+                if (!diffs.isEmpty()) {
+                    items.add(DiffItem.different(DiffItem.Category.INDEX, src.schema(), src.displayName(), diffs));
+                }
+            }
+        }
+    }
+
+    private void diffConstraints(SchemaSnapshot source, SchemaSnapshot target, List<DiffItem> items) {
+        Map<String, ConstraintInfo> srcCons = indexBy(source.constraints(), ConstraintInfo::matchKey);
+        Map<String, ConstraintInfo> tgtCons = indexBy(target.constraints(), ConstraintInfo::matchKey);
+
+        Set<String> allKeys = new TreeSet<>();
+        allKeys.addAll(srcCons.keySet());
+        allKeys.addAll(tgtCons.keySet());
+
+        for (String key : allKeys) {
+            ConstraintInfo src = srcCons.get(key);
+            ConstraintInfo tgt = tgtCons.get(key);
+            ConstraintInfo any = src != null ? src : tgt;
+
+            if (src == null) {
+                items.add(DiffItem.onlyInTarget(DiffItem.Category.CONSTRAINT, any.schema(), any.displayName(), List.of(any.describe())));
+            } else if (tgt == null) {
+                items.add(DiffItem.onlyInSource(DiffItem.Category.CONSTRAINT, any.schema(), any.displayName(), List.of(any.describe())));
+            } else {
+                List<String> diffs = src.differences(tgt);
+                if (!diffs.isEmpty()) {
+                    items.add(DiffItem.different(DiffItem.Category.CONSTRAINT, src.schema(), src.displayName(), diffs));
+                }
+            }
+        }
+    }
+
+    private void diffTriggers(SchemaSnapshot source, SchemaSnapshot target, List<DiffItem> items) {
+        Map<String, TriggerInfo> srcTriggers = indexBy(source.triggers(), TriggerInfo::qualifiedName);
+        Map<String, TriggerInfo> tgtTriggers = indexBy(target.triggers(), TriggerInfo::qualifiedName);
+
+        Set<String> allKeys = new TreeSet<>();
+        allKeys.addAll(srcTriggers.keySet());
+        allKeys.addAll(tgtTriggers.keySet());
+
+        for (String key : allKeys) {
+            TriggerInfo src = srcTriggers.get(key);
+            TriggerInfo tgt = tgtTriggers.get(key);
+            String schema = key.substring(0, key.indexOf('.'));
+            String name = key.substring(key.indexOf('.') + 1);
+
+            if (src == null) {
+                items.add(DiffItem.onlyInTarget(DiffItem.Category.TRIGGER, schema, name, List.of(tgt.describe())));
+            } else if (tgt == null) {
+                items.add(DiffItem.onlyInSource(DiffItem.Category.TRIGGER, schema, name, List.of(src.describe())));
+            } else {
+                List<String> diffs = src.differences(tgt);
+                if (diffs.isEmpty()) continue;
+                if (src.sourceEquals(tgt)) {
+                    items.add(DiffItem.different(DiffItem.Category.TRIGGER, schema, name, diffs));
+                } else {
+                    items.add(DiffItem.differentWithSource(DiffItem.Category.TRIGGER, schema, name, diffs, src.normalizedSource(), tgt.normalizedSource()));
+                }
+            }
+        }
     }
 
     private void diffProceduresAndFunctions(SchemaSnapshot source, SchemaSnapshot target, List<DiffItem> items) {

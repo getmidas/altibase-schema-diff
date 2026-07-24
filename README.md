@@ -6,6 +6,9 @@ Compares:
 
 - Schemas (users)
 - Tables (column names, types, sizes, nullability, defaults)
+- Indexes (existence, uniqueness, type, columns and sort order)
+- Constraints (primary/foreign keys, unique, check; NOT NULL is covered by column comparison)
+- Triggers (existence, enabled state, table + source)
 - Stored Procedures and Functions (existence + source)
 - Sequences (min/max values, cycle, cache size)
 - Views (existence + definition)
@@ -140,6 +143,21 @@ Default TTL: 3600 seconds
         + NEW_COLUMN VARCHAR(100) [target only]
         - OLD_COLUMN INTEGER [source only]
         ~ STATUS: type VARCHAR(20) → VARCHAR(50)
+
+--- Indexes ---
+  Schema: USER1
+    - ORDERS.IDX_ORDERS_STATUS [source only]
+    ~ ORDERS.IDX_ORDERS_DATE [different]
+        unique false → true
+
+--- Constraints ---
+  Schema: USER1
+    + ORDERS.FK_ORDERS_CUSTOMER [target only]
+
+--- Triggers ---
+  Schema: USER1
+    ~ TRG_ORDERS_AUDIT [different]
+        enabled true → false
 
 --- Stored Procedures ---
   Schema: USER1

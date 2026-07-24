@@ -7,7 +7,7 @@ public final class SourceNormalizer {
     private SourceNormalizer() {}
 
     private static final Pattern SCHEMA_PREFIX = Pattern.compile(
-            "(CREATE\\s+OR\\s+REPLACE\\s+(?:PROCEDURE|FUNCTION|VIEW|PACKAGE)\\s+)\\w+\\.",
+            "(CREATE\\s+(?:OR\\s+REPLACE\\s+)?(?:PROCEDURE|FUNCTION|VIEW|PACKAGE|TRIGGER)\\s+)\\w+\\.",
             Pattern.CASE_INSENSITIVE
     );
 

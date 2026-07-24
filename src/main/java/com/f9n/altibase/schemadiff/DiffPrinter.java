@@ -81,8 +81,18 @@ public class DiffPrinter {
         String name = item.objectName();
 
         switch (item.type()) {
-            case ONLY_IN_SOURCE -> out.println(indent + red("- " + name) + dim(" [source only]"));
-            case ONLY_IN_TARGET -> out.println(indent + green("+ " + name) + dim(" [target only]"));
+            case ONLY_IN_SOURCE -> {
+                out.println(indent + red("- " + name) + dim(" [source only]"));
+                for (String detail : item.details()) {
+                    out.println(indent + "    " + dim(detail));
+                }
+            }
+            case ONLY_IN_TARGET -> {
+                out.println(indent + green("+ " + name) + dim(" [target only]"));
+                for (String detail : item.details()) {
+                    out.println(indent + "    " + dim(detail));
+                }
+            }
             case DIFFERENT -> {
                 out.println(indent + yellow("~ " + name) + dim(" [different]"));
                 for (String detail : item.details()) {
@@ -159,6 +169,9 @@ public class DiffPrinter {
             case SCHEMA -> "Schemas";
             case TABLE -> "Tables";
             case COLUMN -> "Columns";
+            case INDEX -> "Indexes";
+            case CONSTRAINT -> "Constraints";
+            case TRIGGER -> "Triggers";
             case PROCEDURE -> "Stored Procedures";
             case FUNCTION -> "Functions";
             case SEQUENCE -> "Sequences";
